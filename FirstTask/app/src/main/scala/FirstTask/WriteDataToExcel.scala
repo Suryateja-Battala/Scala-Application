@@ -11,3 +11,4 @@ object WriteDataToExcel extends App {
 }
 
 //Press Shift twice to open edit configurations
+//Press Ctrl button tu Run anything
