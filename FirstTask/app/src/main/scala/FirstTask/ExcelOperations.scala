@@ -10,7 +10,7 @@ import org.h2.engine.Database
 import java.io.FileOutputStream
 import java.sql.{Connection, DriverManager, Statement}
 import scala.collection.immutable.Range.Inclusive
-import org.h2.jdbcx.JdbcDataSource
+//import org.h2.jdbcx.JdbcDataSource
 
 object ExcelOperations {
   val config = ConfigFactory.load("application.conf")
@@ -26,8 +26,8 @@ object ExcelOperations {
         try {
           val statement = connection.createStatement()
           val wb = new HSSFWorkbook()
-          val sheet = wb.createSheet("EmployeesData888")
-          val resultSet = statement.executeQuery("SELECT * FROM Employee")
+          val sheet = wb.createSheet("EmployeesData0022")
+          val resultSet = statement.executeQuery("SELECT * FROM EmployerData")
 
           val dbData = resultSet.getMetaData
           val cc = dbData.getColumnCount

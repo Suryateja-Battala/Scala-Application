@@ -11,18 +11,20 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
-    //id "com.github.maiflai.scalatest" version "0.32"
-    //id 'com.typesafe.sbt.SbtScalariform' // Add Scala formatter plugin
-    // id 'org.scalatest' version '3.2.9' // Add ScalaTest plugin
-    // id "io.github.ysohda.scalatest" version "0.32.1"
+    //id 'io.cucumber'version '6.10.3'
+    id 'com.github.maiflai.scalatest' version '0.32'
+
+
+   // id 'io.cucumber' version '0.16.2'
 
 }
-
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
+//PluginManagementSpec {
+    repositories {
+        gradlePluginPortal()
+        // Use Maven Central for resolving dependencies.
+        mavenCentral()
+    }
+//}
 dependencies {
     // Use Scala 2.13 in our library project
     implementation 'org.scala-lang:scala-library:2.13.11'
@@ -31,7 +33,21 @@ dependencies {
     implementation 'com.google.guava:guava:32.1.1-jre'
 
     // Use Scalatest for testing our library
-    testImplementation 'junit:junit:4.13.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+//cucumber dependencies
+   testImplementation 'io.cucumber:cucumber-java:7.1.0'
+    testImplementation 'io.cucumber:cucumber-scala_2.13:7.1.0'
+   testImplementation 'io.cucumber:cucumber-junit:7.1.0'
+
+    //testRuntimeOnly 'io.cucumber:cucumber-junit:7.1.0'
+
+    // https://mvnrepository.com/artifact/io.cucumber/cucumber-java
+    //implementation 'io.cucumber:cucumber-java:7.14.0'
+
+
+
     testImplementation 'org.scalatest:scalatest_2.13:3.2.16'
     testImplementation 'org.scalatestplus:junit-4-13_2.13:3.2.2.0'
 
@@ -45,14 +61,16 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.4'
 
 // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
-// https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc
+   implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.14.1'
+
+
+
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.4.1.jre11'
 
     // https://mvnrepository.com/artifact/com.h2database/h2
     implementation 'com.h2database:h2:1.4.200'
-
-//    testCompile 'com.h2database:h2:1.4.200'
 
     //classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.32"
     implementation 'com.vladsch.flexmark:flexmark-all:0.62.2'
@@ -61,7 +79,10 @@ dependencies {
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     testImplementation 'ch.qos.logback:logback-classic:1.4.11'
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
-    testImplementation 'org.slf4j:slf4j-log4j12:2.0.9'
+    //testImplementation 'org.slf4j:slf4j-log4j12:2.0.9'
+
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+
     // https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin
     implementation 'org.apache.maven.plugins:maven-jar-plugin:3.3.0'
 
@@ -81,24 +102,71 @@ application{
 test {
     testClassesDirs = sourceSets.test.output.classesDirs
 
-    test {
-        useJUnit()
-        include 'FirstTask.AppSuite'
-        testLogging {
-            showStandardStreams = true
-        }
+
+        testLogging.showStandardStreams = true
     }
     test {
         systemProperty 'config.file', 'src/test/resources/applicationTest.conf'
     }
 
+/*tasks.register('acceptanceTest', JavaExec) {
+    main = 'io.cucumber.core.cli.Main'
+    classpath = configurations.cucumberRuntime + sourceSets.main.runtimeClasspath
+    args = ['--glue', 'classpath:FirstTask', 'src/test/resources']
+}*/
+
+test {
+    useJUnitPlatform()
 }
+
+/*
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+*/
+
+task cucumber {
+    dependsOn test
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            //classpath = configurations.testRuntime + sourceSets.main.runtimeClasspath
+//            classpath = configurations.testRuntime + sourceSets.test.runtimeClasspath
+            classpath = sourceSets.test.runtimeClasspath
+
+          //  args = ['--glue', 'FirstTask', 'src/test/resources']
+        }
+    }
+}
+build.dependsOn cucumber
+
+
+/*tasks.register('cucumber', JavaExec) {
+    main "org.junit.runner.JUnitCore"
+    args "app.src.test.scala.AcceptanceCucumber"
+     classpath=sourceSets.test.output+sourceSets.main.output+configurations .testRuntime
+    //jvmargs=["-Xmx8g","-Duser"]
+}*/
+
+
+//}
+/*def perf = tasks.withType(Test).tap {
+    configureEach {
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
+    }
+}
+perf*/
 jar.enabled = false
 tasks.register('customJar', Jar) {
     archiveFileName = 'employeeFats.jar'  // Set the desired JAR file name
     manifest {
         attributes 'Main-Class': application.mainClass
-    }
+           }
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
